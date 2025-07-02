@@ -1,0 +1,19 @@
+{
+    "name": "carljoshua/paytaca-bch-gateway",
+    "autoload": {
+        "psr-4": {
+            "Carljoshua\\PaytacaBchGateway\\": "src/",
+            "": "includes/"
+        }
+    },
+    "require": {
+    "bitwasp/bitcoin": "^1.0",
+    "btccom/cashaddress": "^0.0.3"
+    },
+    "config": {
+        "platform": {
+        "php": "7.4.0"
+        }
+    },
+    "minimum-stability": "stable"
+}
