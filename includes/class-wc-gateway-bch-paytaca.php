@@ -17,7 +17,7 @@ class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
 
         $this->method_title = 'Bitcoin Cash (Paytaca)';
         $this->method_description = 'Accept BCH payments via Paytaca Payment Hub.';
-        $this->icon = $this->get_icon(); // Checkout icon: BCH only
+        $this->icon = plugins_url('assets/paytaca-icon.png', __FILE__);
 
         $this->init_form_fields();
         $this->init_settings();
@@ -31,8 +31,6 @@ class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
         // Save settings
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
 
-        // Add Paytaca logo in admin payments list
-        add_action('admin_head', [$this, 'inject_admin_icon']);
     }
 
     // BCH icon shown at checkout
@@ -41,26 +39,6 @@ class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
         return '<img src="' . esc_url($bch_icon_url) . '" alt="Bitcoin Cash" style="max-width:34px; max-height:34px; vertical-align:middle;" />';
     }
 
-    // Inject Paytaca icon into WooCommerce > Settings > Payments list
-    public function inject_admin_icon() {
-        $screen = get_current_screen();
-        if ($screen && $screen->id === 'woocommerce_page_wc-settings') {
-            $icon_url = plugins_url('../assets/paytaca-icon.png', __FILE__);
-            echo "<style>
-                tr[data-gateway_id='{$this->id}'] th strong:before {
-                    content: '';
-                    display: inline-block;
-                    width: 20px;
-                    height: 20px;
-                    background-image: url('{$icon_url}');
-                    background-size: contain;
-                    background-repeat: no-repeat;
-                    margin-right: 6px;
-                    vertical-align: middle;
-                }
-            </style>";
-        }
-    }
 
     public function init_form_fields() {
         $this->form_fields = [
