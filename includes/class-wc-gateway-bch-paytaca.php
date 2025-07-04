@@ -17,7 +17,7 @@ class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
 
         $this->method_title = 'Bitcoin Cash (Paytaca)';
         $this->method_description = 'Accept BCH payments via Paytaca Payment Hub.';
-        $this->icon = plugins_url('assets/paytaca-icon.png', __FILE__);
+        $this->icon = plugins_url('../assets/paytaca-icon.png', __FILE__);
 
         $this->init_form_fields();
         $this->init_settings();
