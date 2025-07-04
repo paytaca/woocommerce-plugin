@@ -1,4 +1,6 @@
 <?php
+//Use this function if using the packages in composer.json and has enabled the gmp extension
+//This function is used to subscribe the generated bch address
 function subscribe_watchtower($address, $project_id, $wallet_hash, $wallet_index) {
     $response = wp_remote_post('https://watchtower.cash/api/subscription/', [
         'headers' => ['Content-Type' => 'application/json'],

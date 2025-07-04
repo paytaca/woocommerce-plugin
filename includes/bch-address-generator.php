@@ -1,4 +1,6 @@
 <?php
+//Use this function if using the packages in composer.json and has enabled the gmp extension
+//Used for generating bch address using pubkey
 use BitWasp\Bitcoin\Bitcoin;
 use BitWasp\Bitcoin\Network\NetworkFactory;
 use BitWasp\Bitcoin\Key\Factory\HierarchicalKeyFactory;
