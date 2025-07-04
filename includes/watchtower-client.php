@@ -10,11 +10,15 @@ function subscribe_watchtower($address, $project_id, $wallet_hash, $wallet_index
         ])
     ]);
 
-    $result = json_decode(wp_remote_retrieve_body($response), true);
+    $body = wp_remote_retrieve_body($response);
+    $result = json_decode($body, true);
+
     if (!is_array($result)) {
+        error_log("[BCH Paytaca] 🔥 Invalid response from Watchtower:");
+        error_log("[BCH Paytaca] HTTP Code: " . wp_remote_retrieve_response_code($response));
+        error_log("[BCH Paytaca] Body: " . var_export($body, true));
         throw new Exception("Invalid JSON from Watchtower response.");
     }
-    return $result;
 
-    return json_decode(wp_remote_retrieve_body($response), true);
+    return $result;
 }
