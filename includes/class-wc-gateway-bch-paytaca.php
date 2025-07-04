@@ -1,8 +1,6 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-require_once __DIR__ . '/bch-address-generator.php';
-require_once __DIR__ . '/watchtower-client.php';
 require_once __DIR__ . '/invoice-client.php';
 
 class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
@@ -73,27 +71,24 @@ class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
         }
 
         try {
-            // 1. Generate BCH Address
-            $bch_address = generate_bch_address($this->xpub, $order_id);
-            $this->log("Generated address: $bch_address");
-
-            // 2. Subscribe to Watchtower
-            $watchtower_result = subscribe_watchtower(
-                $bch_address,
-                $this->project_id,
-                $this->wallet_hash,
-                $order_id
-            );
-            $this->log("Watchtower: " . json_encode($watchtower_result));
-
-            // 3. Create Paytaca Invoice
+            // Step 1: Create Invoice and let Paytaca derive the address
             $amount   = round(floatval($order->get_total()), 2);
             $currency = $order->get_currency();
             $memo     = "Order #$order_id";
 
-            $invoice_response_json = create_paytaca_invoice($bch_address, $amount, $currency, $memo, $order_id);
+            $invoice_response_json = create_paytaca_invoice(
+                $this->xpub,
+                $this->wallet_hash,
+                $order_id, // using order_id as index
+                $amount,
+                $currency,
+                $memo,
+                $order_id
+            );
+
+            $this->log("🧾 Invoice API response: " . $invoice_response_json);
+
             $invoice_response = json_decode($invoice_response_json, true);
-            $this->log("Invoice: " . $invoice_response_json);
 
             if (!isset($invoice_response['invoice_id'])) {
                 throw new Exception("Invoice creation failed: invoice_id not returned");
@@ -111,7 +106,7 @@ class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
             ];
 
         } catch (Exception $e) {
-            $this->log("Error: " . $e->getMessage());
+            $this->log("❌ Error: " . $e->getMessage());
             wc_add_notice('Payment error: ' . $e->getMessage(), 'error');
             return [
                 'result'   => 'failure',
