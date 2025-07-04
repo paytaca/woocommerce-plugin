@@ -1,7 +1,44 @@
 <?php
 require_once 'C:/xampp/htdocs/wordpress/wp-load.php';
 
-$order_id = isset($_GET['order_id']) ? intval($_GET['order_id']) : 0;
+$order_id   = isset($_GET['order_id']) ? intval($_GET['order_id']) : 0;
+$payment_successful = false;
+
+if ($order_id > 0) {
+    $order = wc_get_order($order_id);
+    if ($order) {
+        if ($order->get_status() !== 'completed') {
+            $order->update_status('completed', '✅ Payment verified via Paytaca.');
+            
+            // Reduce stock manually
+            foreach ($order->get_items() as $item_id => $item) {
+                $product = $item->get_product();
+                $qty     = $item->get_quantity();
+                if ($product && $product->managing_stock()) {
+                    $old_stock = $product->get_stock_quantity();
+                    $product->decrease_stock($qty);
+                    wc_delete_product_transients($product->get_id());
+                    error_log("[Paytaca] 🔻 Reduced stock for Product {$product->get_id()} from $old_stock to " . $product->get_stock_quantity());
+                }
+            }
+
+            do_action('woocommerce_order_status_completed', $order->get_id());
+            error_log("[Paytaca] ✅ Order marked completed manually with stock reduction.");
+        }
+
+        // ✅ Clear the cart to reflect that the order is done
+        if (function_exists('WC')) {
+            WC()->cart->empty_cart();
+            error_log("[Paytaca] 🛒 Cart cleared after order completion.");
+        }
+        $payment_successful = true;
+    } else {
+        error_log("[Paytaca Success Page] ⚠️ Order not found.");
+    }
+} else {
+    error_log("[Paytaca Success Page] ⚠️ Missing order_id or invoice_id.");
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -171,27 +208,24 @@ $order_id = isset($_GET['order_id']) ? intval($_GET['order_id']) : 0;
     </style>
 </head>
 <body>
-    <!-- Confetti container -->
-    <div class="confetti">
-        <?php for ($i = 0; $i < 50; $i++): ?>
-            <div class="confetti-piece" style="
-                left: <?= rand(0, 100) ?>%;
-                animation-delay: <?= rand(0, 2000) / 1000 ?>s;
-                animation-duration: <?= rand(2000, 4000) / 1000 ?>s;
-                transform: rotate(<?= rand(0, 360) ?>deg);
-            "></div>
-        <?php endfor; ?>
-    </div>
-
     <div class="success-box">
         <div class="icon-wrapper">
             <span class="emoji">🎉</span>
             <img src="../assets/paytaca-icon.png" alt="Paytaca Logo" class="logo">
             <span class="emoji">🎉</span>
         </div>
-        <h1>Payment Successful!</h1>
-        <p class="message">Thank you for your purchase.</p>
-        <p class="message"><strong class="reference">Reference:</strong> <?php echo $order_id > 0 ? 'Order #' . $order_id : 'Unknown'; ?></p>
+        <h1><?php echo $payment_successful ? 'Payment Successful!' : 'Payment Pending'; ?></h1>
+        <p class="message">
+            <?php
+                if ($order_id > 0) {
+                    echo '<strong class="reference">Reference:</strong> Order #' . $order_id . '<br>';
+                }
+
+                echo $payment_successful
+                    ? 'Thank you for your purchase. Your order has been completed.'
+                    : 'We couldn’t confirm the payment yet. Please wait or contact support.';
+            ?>
+        </p>
         <p class="thank-you">We appreciate your trust in Paytaca.</p>
         <a href="<?php echo esc_url(home_url()); ?>" class="home-btn">Return to Homepage</a>
     </div>
