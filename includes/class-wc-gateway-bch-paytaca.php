@@ -90,12 +90,18 @@ class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
 
             $invoice_response = json_decode($invoice_response_json, true);
 
-            if (!isset($invoice_response['invoice_id'])) {
-                throw new Exception("Invoice creation failed: invoice_id not returned");
+            if (!isset($invoice_response['invoice_id']) || !isset($invoice_response['expires'])) {
+                throw new Exception("Invoice creation failed: invoice_id or expires not returned");
             }
 
             $invoice_id = $invoice_response['invoice_id'];
+            $expires    = $invoice_response['expires'];
             $redirect_url = "https://payment-hub.paytaca.com/invoice/{$invoice_id}";
+
+            // 🔐 Store invoice_id and expires for later verification
+            $order->update_meta_data('_paytaca_invoice_id', $invoice_id);
+            $order->update_meta_data('_paytaca_invoice_expires', $expires);
+            $order->save();
 
             $order->update_status('on-hold', 'Awaiting BCH payment via Paytaca.');
             $order->add_order_note("Paytaca Invoice ID: {$invoice_id}");
