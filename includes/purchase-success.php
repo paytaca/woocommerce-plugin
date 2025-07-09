@@ -1,26 +1,22 @@
 <?php
-function find_wp_load($start_path) {
-    $dir = $start_path;
-
-    while ($dir !== dirname($dir)) { // Avoid infinite loop at root
-        if (file_exists($dir . '/wp-load.php')) {
-            return $dir . '/wp-load.php';
+if (!defined('ABSPATH')) {
+    $dir = __DIR__;
+    while ($dir !== dirname($dir)) {
+        $wp_load = $dir . DIRECTORY_SEPARATOR . 'wp-load.php';
+        if (file_exists($wp_load)) {
+            require_once $wp_load;
+            break;
         }
         $dir = dirname($dir);
     }
 
-    return false; // Not found
+    if (!defined('ABSPATH')) {
+        // WordPress not loaded — abort
+        header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
+        error_log("[Paytaca Webhook] Error: wp-load.php not found.");
+        exit('Critical Error: Could not load WordPress.');
+    }
 }
-
-$wp_load = find_wp_load(__DIR__);
-
-if ($wp_load) {
-    require_once $wp_load;
-} else {
-    error_log("[Error] wp-load.php not found.");
-    exit("wp-load.php not found");
-}
-
 
 $order_id = absint($_GET['order_id'] ?? 0);
 $status   = $_GET['status'] ?? '';
@@ -61,7 +57,7 @@ $order = wc_get_order($order_id);
 
         body {
             font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: var(--bg-color);
+            background: linear-gradient(135deg, #e53935, #0057ff);
             color: var(--text-color);
             display: flex;
             align-items: center;
@@ -71,24 +67,25 @@ $order = wc_get_order($order_id);
         }
 
         .success-box {
-            background: var(--card-bg);
+            background: rgba(255, 255, 255, 0.95); /* Slightly transparent white */
             padding: 50px 40px;
             border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             text-align: center;
             max-width: 600px;
             width: 100%;
         }
 
+
         .icon-wrapper {
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .logo {
-            width: 60px;
+            width: 80px;
         }
 
         h1 {

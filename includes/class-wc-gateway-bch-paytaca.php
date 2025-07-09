@@ -11,7 +11,7 @@ class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
 
     public function __construct() {
         $this->id = 'bch_paytaca';
-        $this->has_fields = false;
+        $this->has_fields = true;
 
         $this->method_title = 'Bitcoin Cash (Paytaca)';
         $this->method_description = 'Accept BCH payments via Paytaca Payment Hub.';
@@ -35,6 +35,10 @@ class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
     public function get_icon() {
         $bch_icon_url = plugins_url('../assets/bch.png', __FILE__);
         return '<img src="' . esc_url($bch_icon_url) . '" alt="Bitcoin Cash" style="max-width:34px; max-height:34px; vertical-align:middle;" />';
+    }
+
+    public function payment_fields() {
+        echo '<input type="hidden" name="payment_method" value="' . esc_attr($this->id) . '" />';
     }
 
 
@@ -86,7 +90,7 @@ class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
                 $order_id
             );
 
-            $this->log("🧾 Invoice API response: " . $invoice_response_json);
+            $this->log("Invoice API response: " . $invoice_response_json);
 
             $invoice_response = json_decode($invoice_response_json, true);
 
@@ -112,7 +116,7 @@ class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
             ];
 
         } catch (Exception $e) {
-            $this->log("❌ Error: " . $e->getMessage());
+            $this->log("Error: " . $e->getMessage());
             wc_add_notice('Payment error: ' . $e->getMessage(), 'error');
             return [
                 'result'   => 'failure',
