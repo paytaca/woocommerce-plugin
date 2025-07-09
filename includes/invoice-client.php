@@ -1,6 +1,12 @@
 <?php
+if (!defined('ABSPATH')) exit;
+
 function create_paytaca_invoice($xpub_key, $wallet_hash, $index, $amount, $currency, $memo, $order_id) {
-    $redirect_url = plugins_url('includes/purchase-success.php', dirname(__FILE__)) . '?order_id=' . intval($order_id);
+    $verify_redirect_url = add_query_arg([
+        'order_id' => intval($order_id)
+    ], plugins_url('includes/verify-payment.php', dirname(__FILE__)));
+
+    $webhook_url = plugins_url('includes/bch-webhook.php', dirname(__FILE__));
 
     $payload = [
         'recipients' => [[
@@ -12,20 +18,27 @@ function create_paytaca_invoice($xpub_key, $wallet_hash, $index, $amount, $curre
         ]],
         'currency'     => $currency,
         'memo'         => $memo,
-        'redirect_url' => $redirect_url
+        'redirect_url' => $verify_redirect_url,
+        'webhook_url'  => $webhook_url,
+        'reference'    => $order_id
     ];
+
+    error_log("[Paytaca] Creating invoice for Order #$order_id: " . json_encode($payload));
 
     $response = wp_remote_post('https://payment-hub.paytaca.com/api/invoices/', [
         'headers' => ['Content-Type' => 'application/json'],
         'body'    => json_encode($payload)
     ]);
 
-    $body = wp_remote_retrieve_body($response);
-    $result = json_decode($body, true);
-
-    if (!is_array($result)) {
-        throw new Exception("Invalid JSON from Paytaca invoice API.");
+    if (is_wp_error($response)) {
+        error_log("[Paytaca] Failed to contact Paytaca API: " . $response->get_error_message());
+        return json_encode(['error' => 'Invoice creation failed.']);
     }
 
-    return $body;
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+
+    error_log("[Paytaca] Invoice response: " . $body);
+
+    return json_encode($data);
 }
