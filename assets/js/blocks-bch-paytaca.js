@@ -1,17 +1,26 @@
 (function () {
     const blocks = window.wc?.wcBlocksRegistry;
     const element = window.wp?.element;
+    const apiFetch = window.wp?.apiFetch;
 
     if (!blocks || !element || typeof blocks.registerPaymentMethod !== 'function') {
         console.error('❌ WooCommerce Blocks or wp.element not loaded.');
         return;
     }
 
+    // ✅ Attach nonce header to all REST requests
+    if (apiFetch && window.wcSettings?.nonce) {
+        apiFetch.use(apiFetch.createNonceMiddleware(window.wcSettings.nonce));
+        console.log("✅ Nonce middleware attached");
+    } else {
+        console.warn("⚠️ wp.apiFetch or nonce missing");
+    }
+
     const { createElement, Fragment } = element;
 
     console.log("🚀 Paytaca BCH block JS loaded");
 
-    const bchIconUrl = window.bchPaytacaIconUrl || ''; // will be defined in PHP
+    const bchIconUrl = window.bchPaytacaIconUrl || '';
     const LabelWithIcon = createElement(Fragment, null,
         createElement('img', {
             src: bchIconUrl,

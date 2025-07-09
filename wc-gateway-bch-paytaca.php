@@ -28,22 +28,28 @@ function init_wc_gateway_bch_paytaca() {
 }
 
 // Add support for WooCommerce Blocks
-add_action('before_woocommerce_init', function () {
-    if (class_exists(\Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType::class)) {
-        require_once __DIR__ . '/includes/class-bch-gateway-blocks.php';
-
-        add_action('woocommerce_blocks_payment_method_type_registration', function ($registry) {
-            $registry->register(new \WC_BCH_Paytaca_Blocks_Payment_Method());
-        });
+add_action('woocommerce_blocks_loaded', function () {
+    if (!class_exists(\Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType::class)) {
+        return;
     }
+
+    require_once __DIR__ . '/includes/class-bch-gateway-blocks.php';
+
+    add_action(
+        'woocommerce_blocks_payment_method_type_registration',
+        function ($payment_method_registry) {
+            $payment_method_registry->register(new WC_BCH_Paytaca_Blocks_Payment_Method());
+        }
+    );
 });
+
 
 add_action('enqueue_block_assets', function () {
     if (is_checkout()) {
         wp_enqueue_script(
             'bch-paytaca-blocks',
             plugins_url('assets/js/blocks-bch-paytaca.js', __FILE__),
-            ['wp-element', 'wc-blocks-registry'],
+            ['wp-element', 'wc-blocks-registry', 'wc-settings', 'wp-api-fetch'],
             '1.0.2',
             true
         );

@@ -27,6 +27,7 @@ $order = wc_get_order($order_id);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ Make layout responsive -->
     <title>
         <?php
             if ($status === 'expired') {
@@ -67,8 +68,8 @@ $order = wc_get_order($order_id);
         }
 
         .success-box {
-            background: rgba(255, 255, 255, 0.95); /* Slightly transparent white */
-            padding: 50px 40px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px 30px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             text-align: center;
@@ -76,12 +77,11 @@ $order = wc_get_order($order_id);
             width: 100%;
         }
 
-
         .icon-wrapper {
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 10px;
+            margin-bottom: 16px;
         }
 
         .logo {
@@ -91,7 +91,7 @@ $order = wc_get_order($order_id);
         h1 {
             font-size: 2rem;
             color: var(--primary-color);
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .error-message {
@@ -101,6 +101,7 @@ $order = wc_get_order($order_id);
         .message {
             font-size: 1.1rem;
             margin: 12px 0;
+            line-height: 1.5;
         }
 
         .reference {
@@ -132,21 +133,32 @@ $order = wc_get_order($order_id);
             background-color: var(--button-hover);
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
             .success-box {
-                padding: 30px 20px;
-            }
-
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            .message, .thank-you {
-                font-size: 1rem;
+                padding: 24px 16px;
             }
 
             .logo {
                 width: 50px;
+            }
+
+            h1 {
+                font-size: 1.4rem;
+            }
+
+            .message,
+            .thank-you {
+                font-size: 0.95rem;
+            }
+
+            .home-btn {
+                font-size: 0.95rem;
+                padding: 10px 20px;
+                width: 100%;
             }
         }
     </style>
@@ -182,7 +194,6 @@ $order = wc_get_order($order_id);
             <p class="message">Invalid or missing transaction. Please try again or contact support.</p>
         <?php endif; ?>
 
-        <p class="thank-you">We appreciate your trust in Paytaca.</p>
         <a href="<?php echo esc_url(home_url()); ?>" class="home-btn">Return to Homepage</a>
     </div>
 </body>
