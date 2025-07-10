@@ -176,7 +176,7 @@ $order = wc_get_order($order_id);
                     if ($order_id > 0) {
                         echo '<strong class="reference">Reference:</strong> Order #' . $order_id . '<br>';
                     }
-                    echo 'Thank you for your purchase. Your order has been completed.';
+                    echo 'Thank you for your purchase. Your order has been paid.';
                 ?>
             </p>
         <?php elseif ($status === 'expired'): ?>
