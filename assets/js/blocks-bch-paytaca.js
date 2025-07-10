@@ -1,24 +1,15 @@
 (function () {
     const blocks = window.wc?.wcBlocksRegistry;
     const element = window.wp?.element;
-    const apiFetch = window.wp?.apiFetch;
 
     if (!blocks || !element || typeof blocks.registerPaymentMethod !== 'function') {
-        console.error('❌ WooCommerce Blocks or wp.element not loaded.');
+        console.error('WooCommerce Blocks or wp.element not loaded.');
         return;
-    }
-
-    // ✅ Attach nonce header to all REST requests
-    if (apiFetch && window.wcSettings?.nonce) {
-        apiFetch.use(apiFetch.createNonceMiddleware(window.wcSettings.nonce));
-        console.log("✅ Nonce middleware attached");
-    } else {
-        console.warn("⚠️ wp.apiFetch or nonce missing");
     }
 
     const { createElement, Fragment } = element;
 
-    console.log("🚀 Paytaca BCH block JS loaded");
+    console.log("Paytaca BCH block JS loaded");
 
     const bchIconUrl = window.bchPaytacaIconUrl || '';
     const LabelWithIcon = createElement(Fragment, null,
@@ -38,12 +29,19 @@
     blocks.registerPaymentMethod({
         name: 'bch_paytaca',
         label: LabelWithIcon,
-        content: createElement('div', null, 'You will be redirected to Paytaca to complete your BCH payment.'),
-        edit: createElement('div', null, 'You will be redirected to Paytaca to complete your BCH payment.'),
+        content: createElement('div', null, 'You will be redirected to the Paytaca Payment Hub to complete your BCH payment securely.'),
+        edit: createElement('div', null, 'You will be redirected to the Paytaca Payment Hub to complete your BCH payment securely.'),
         canMakePayment: () => true,
         ariaLabel: 'Bitcoin Cash (BCH)',
         supports: {
             features: ['products']
+        },
+        paymentMethodData: () => ({
+            payment_method: 'bch_paytaca'
+        }),
+        onPaymentProcessing: () => {
+            console.log("Processing Paytaca BCH payment...");
         }
     });
+
 })();

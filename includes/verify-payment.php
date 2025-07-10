@@ -62,7 +62,7 @@ function paytaca_clear_wc_cache($order) {
 }
 
 if ($current_timestamp <= $expires_timestamp) {
-    // ✅ Still valid → complete if not already
+    // Still valid → complete if not already
     if ($order->get_status() !== 'completed') {
         if (!$order->get_payment_method()) {
             $order->set_payment_method('bch_paytaca');
@@ -86,7 +86,7 @@ if ($current_timestamp <= $expires_timestamp) {
     wp_redirect(plugins_url('includes/purchase-success.php', dirname(__FILE__)) . "?order_id={$order_id}&status=paid");
     exit;
 } else {
-    // ❌ Expired
+    // Expired
     error_log("[Paytaca] ⚠ Invoice expired for Order #$order_id.");
 
     $current_status = $order->get_status();

@@ -19,14 +19,19 @@ class WC_BCH_Paytaca_Blocks_Payment_Method extends AbstractPaymentMethodType {
         return [
             'name'        => $this->name,
             'title'       => $this->settings['title'] ?? 'Bitcoin Cash (BCH)',
-            'description' => __('Pay securely with Bitcoin Cash via Paytaca.', 'woocommerce'),
+            'description' => __('You will be redirected to the Paytaca Payment Hub to complete your BCH payment securely.', 'woocommerce'),
             'supports'    => ['products'],
             'icons'       => [
                 [
-                    'src' => plugins_url('../assets/bch.png', __FILE__),
+                    'src' => plugins_url('assets/bch.png', dirname(__FILE__, 2)),
                     'alt' => 'Bitcoin Cash',
                 ],
             ],
         ];
     }
+
+    public function get_payment_method_script_handles() {
+        return ['bch-paytaca-blocks'];
+    }
 }
+

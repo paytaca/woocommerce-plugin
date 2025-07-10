@@ -43,26 +43,20 @@ add_action('woocommerce_blocks_loaded', function () {
     );
 });
 
+// Enqueue block assets
+add_action('wp_enqueue_scripts', function () {
+    wp_register_script(
+        'bch-paytaca-blocks',
+        plugins_url('assets/js/blocks-bch-paytaca.js', __FILE__),
+        ['wp-element', 'wp-api-fetch', 'wc-blocks-registry'],
+        '1.0.2',
+        true
+    );
 
-add_action('enqueue_block_assets', function () {
-    if (is_checkout()) {
-        wp_enqueue_script(
-            'bch-paytaca-blocks',
-            plugins_url('assets/js/blocks-bch-paytaca.js', __FILE__),
-            ['wp-element', 'wc-blocks-registry', 'wc-settings', 'wp-api-fetch'],
-            '1.0.2',
-            true
-        );
+    wp_add_inline_script(
+        'bch-paytaca-blocks',
+        'window.bchPaytacaIconUrl = "' . esc_js(plugins_url('assets/bch.png', __FILE__)) . '";',
+        'before'
+    );
 
-        // Pass the BCH icon URL to JS
-        wp_add_inline_script(
-            'bch-paytaca-blocks',
-            'window.bchPaytacaIconUrl = "' . esc_js(plugins_url('assets/bch.png', __FILE__)) . '";',
-            'before'
-        );
-    }
-});
-
-
-
-
+}, 20);
