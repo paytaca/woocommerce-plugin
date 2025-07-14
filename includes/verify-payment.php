@@ -87,7 +87,7 @@ if ($current_timestamp <= $expires_timestamp) {
     exit;
 } else {
     // Expired
-    error_log("[Paytaca] ⚠ Invoice expired for Order #$order_id.");
+    error_log("[Paytaca] Invoice expired for Order #$order_id.");
 
     $current_status = $order->get_status();
     if (in_array($current_status, ['pending', 'on-hold', 'failed'])) {

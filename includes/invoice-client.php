@@ -1,25 +1,22 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-function create_paytaca_invoice($xpub_key, $wallet_hash, $index, $amount, $currency, $memo, $order_id) {
+function create_paytaca_invoice($store_id ,$xpub_key, $wallet_hash, $amount, $currency, $memo, $order_id) {
     $verify_redirect_url = add_query_arg([
-        'order_id' => intval($order_id)
-    ], plugins_url('includes/verify-payment.php', dirname(__FILE__)));
-
-    $webhook_url = plugins_url('includes/bch-webhook.php', dirname(__FILE__));
-
+            'order_id' => intval($order_id)
+        ], plugins_url('includes/verify-payment.php', dirname(__FILE__)));
     $payload = [
         'recipients' => [[
             'amount'       => $amount,
             'xpub_key'     => $xpub_key,
-            'index'        => intval($index),
+            'index'        => $order_id,
             'wallet_hash'  => $wallet_hash,
             'description'  => 'Payment for goods or services'
         ]],
         'currency'     => $currency,
         'memo'         => $memo,
+        'store_id'     => $store_id,
         'redirect_url' => $verify_redirect_url,
-        'webhook_url'  => $webhook_url,
         'reference'    => $order_id
     ];
 
