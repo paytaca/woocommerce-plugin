@@ -25,6 +25,14 @@ This plugin enables WooCommerce stores to accept Bitcoin Cash payments through t
 
 Configure your Paytaca Payment Hub API credentials in the WooCommerce payment settings to enable Bitcoin Cash payments on your store.
 
+The plugin settings page requires the following information:
+
+- **Store Name:** The name of your store
+- **xPub Key:** Your Paytaca wallet's xPub Key
+- **Wallet Hash:** Your Paytaca wallet's Wallet Hash
+
+You can find your xPub Key and Wallet Hash in the Paytaca app under: **Apps > Wallet Info > BCH Addresses** panel.
+
 ## Support
 
 For support and documentation, please refer to the Paytaca documentation or contact the development team.
