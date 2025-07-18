@@ -2,6 +2,9 @@
 if (!defined('ABSPATH')) exit;
 
 require_once __DIR__ . '/invoice-client.php';
+require_once __DIR__ . '/bch-webhook.php';
+require_once __DIR__ . '/verify-payment.php';
+require_once __DIR__ . '/purchase-success.php';
 
 class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
     public $wallet_hash, $project_id, $xpub;
