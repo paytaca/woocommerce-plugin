@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Bitcoin Cash Payments - Paytaca
  * Description: Accept Bitcoin Cash payments via Paytaca.
- * Version: 1.3.1
+ * Version: 0.1.1
  * Author: Paytaca
  */
 

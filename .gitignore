@@ -1,0 +1,51 @@
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE/editor settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore vendor directory (use composer install to rebuild)
+vendor/
+
+# Ignore Composer lock file (optional for plugins/libraries)
+composer.lock
+
+# Ignore build artifacts
+/build/
+/dist/
+
+# Ignore log files
+*.log
+
+# Ignore environment/config files
+.env
+.env.*
+
+# Ignore WordPress-specific files that don't belong in the plugin
+wp-config.php
+.htaccess
+wp-content/uploads/
+
+# Ignore node modules if frontend tooling is added
+node_modules/
+npm-debug.log
+yarn.lock
+pnpm-lock.yaml
+
+# Ignore PHPUnit test output
+.phpunit.result.cache
+
+# Ignore temporary files
+*.bak
+*.tmp
+*.swp
+
+# Ignore coverage reports
+coverage/
+
+# Ignore zip exports
+*.zip

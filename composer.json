@@ -1,19 +1,37 @@
 {
-    "name": "carljoshua/paytaca-bch-gateway",
+    "name": "paytaca/woocommerce-plugin",
+    "description": "Bitcoin Cash payment gateway for WooCommerce by Paytaca",
+    "version": "0.1.1",
+    "type": "wordpress-plugin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Paytaca",
+            "email": "support@paytaca.com",
+            "homepage": "https://paytaca.com"
+        }
+    ],
+    "homepage": "https://github.com/paytaca/woocommerce-plugin",
     "autoload": {
         "psr-4": {
-            "Carljoshua\\PaytacaBchGateway\\": "src/",
-            "": "includes/"
-        }
+            "Paytaca\\WooCommerceBCH\\": "src/"
+        },
+        "classmap": [
+            "includes/"
+        ]
     },
     "require": {
-    "bitwasp/bitcoin": "^1.0",
-    "btccom/cashaddress": "^0.0.3"
+        "php": "^7.4 || ^8.0",
+        "bitwasp/bitcoin": "^1.0",
+        "btccom/cashaddress": "^0.0.3"
     },
     "config": {
         "platform": {
-        "php": "7.4.0"
-        }
+            "php": "7.4.0"
+        },
+        "optimize-autoloader": true,
+        "preferred-install": "dist"
     },
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }

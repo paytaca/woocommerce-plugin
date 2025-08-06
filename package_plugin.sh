@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Name of the output zip file
-ZIP_FILE="woocommerce-plugin-paytaca.zip"
+ZIP_FILE="paytaca-woocommerce-plugin.zip"
 
 # Name of the directory to compress
 SOURCE_DIR="."
