@@ -2,9 +2,6 @@
 if (!defined('ABSPATH')) exit;
 
 require_once __DIR__ . '/invoice-client.php';
-require_once __DIR__ . '/bch-webhook.php';
-require_once __DIR__ . '/verify-payment.php';
-require_once __DIR__ . '/purchase-success.php';
 
 class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
     public $wallet_hash, $project_id, $xpub;
@@ -97,7 +94,7 @@ class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
     }
 
     private function handle_store_creation($store_name, $wallet_hash) {
-        $webhook_url = plugins_url('includes/bch-webhook.php', dirname(__FILE__));
+        $webhook_url = add_query_arg(['paytaca_action' => 'webhook'], home_url('/'));
 
         $secret_key = wp_hash($store_name . $wallet_hash . time());
 

@@ -64,7 +64,6 @@ function verifyWebhookSignature($rawPayload, $signature, $secretKey) {
     return true;
 }
 
-
 // === Decode payload ===
 $data = json_decode($raw_post_data, true);
 if (!$data || empty($data['invoice_id'])) {
@@ -119,34 +118,51 @@ $order = $orders[0];
 $order_id = $order->get_id();
 $payment_status = strtolower($data['status'] ?? '');
 
-if (in_array($payment_status, ['paid', 'completed'])) {
-    if ($order->get_status() !== 'completed') {
-        $order->payment_complete();
-        $order->add_order_note("Payment confirmed via Paytaca webhook. TX: " . ($data['transaction_id'] ?? 'N/A'));
+switch ($payment_status) {
+    case 'paid':
+    case 'completed':
+        if ($order->get_status() !== 'completed') {
+            $order->update_status('completed', 'Payment confirmed via Paytaca webhook. TX: ' . ($data['transaction_id'] ?? 'N/A'));
+            $order->add_order_note("Order marked completed via webhook.");
 
-        foreach ($order->get_items() as $item) {
-            $product = $item->get_product();
-            if ($product && $product->managing_stock()) {
-                $product->decrease_stock($item->get_quantity());
+            foreach ($order->get_items() as $item) {
+                $product = $item->get_product();
+                if ($product && $product->managing_stock()) {
+                    $product->decrease_stock($item->get_quantity());
+                }
             }
         }
-    }
 
-    if (WC()->cart) {
-        WC()->cart->empty_cart();
-    }
+        if (WC()->cart) {
+            WC()->cart->empty_cart();
+        }
 
-    error_log("[Paytaca Webhook] Order #$order_id marked as completed.");
-} else {
-    if ($order->get_status() !== 'failed') {
-        $order->update_status('failed', "Payment failed or unknown status: $payment_status");
-    }
+        error_log("[Paytaca Webhook] Order #$order_id marked as completed.");
+        break;
 
-    if (WC()->cart) {
-        WC()->cart->empty_cart();
-    }
+    case 'expired':
+        if ($order->get_status() !== 'cancelled') {
+            $order->update_status('cancelled', 'Payment expired via Paytaca.');
+        }
 
-    error_log("[Paytaca Webhook] Order #$order_id marked as failed. Status: $payment_status");
+        error_log("[Paytaca Webhook] Order #$order_id marked as cancelled (expired).");
+        break;
+
+    case 'cancelled':
+        if ($order->get_status() !== 'cancelled') {
+            $order->update_status('cancelled', 'Payment was cancelled via Paytaca.');
+        }
+
+        error_log("[Paytaca Webhook] Order #$order_id marked as cancelled.");
+        break;
+
+    default:
+        if ($order->get_status() !== 'failed') {
+            $order->update_status('failed', "Payment failed or unknown status: $payment_status");
+        }
+
+        error_log("[Paytaca Webhook] Order #$order_id marked as failed. Unknown status: $payment_status");
+        break;
 }
 
 http_response_code(200);

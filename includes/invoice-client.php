@@ -1,10 +1,9 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-function create_paytaca_invoice($store_id ,$xpub_key, $wallet_hash, $amount, $currency, $memo, $order_id) {
-    $verify_redirect_url = add_query_arg([
-            'order_id' => intval($order_id)
-        ], plugins_url('includes/verify-payment.php', dirname(__FILE__)));
+function create_paytaca_invoice($store_id, $xpub_key, $wallet_hash, $amount, $currency, $memo, $order_id) {
+    $success_url = trailingslashit(home_url('/paytaca/success/' . intval($order_id))); // Fix: ensure trailing slash
+
     $payload = [
         'recipients' => [[
             'amount'       => $amount,
@@ -16,7 +15,7 @@ function create_paytaca_invoice($store_id ,$xpub_key, $wallet_hash, $amount, $cu
         'currency'     => $currency,
         'memo'         => $memo,
         'store_id'     => $store_id,
-        'redirect_url' => $verify_redirect_url,
+        'redirect_url' => $success_url,
         'reference'    => $order_id
     ];
 

@@ -2,15 +2,56 @@
 /**
  * Plugin Name: Bitcoin Cash Payments - Paytaca
  * Description: Accept Bitcoin Cash payments via Paytaca.
- * Version: 1.2
+ * Version: 1.3.1
  * Author: Paytaca
  */
 
 if (!defined('ABSPATH')) exit;
 
+// Add rewrite rule for pretty URL
+add_action('init', function () {
+    add_rewrite_rule(
+        '^paytaca/success/([0-9]+)/?$',
+        'index.php?paytaca_action=success&order_id=$matches[1]',
+        'top'
+    );
+});
+
+// Register query vars
+add_filter('query_vars', function ($vars) {
+    $vars[] = 'paytaca_action';
+    $vars[] = 'order_id';
+    $vars[] = 'status';
+    return $vars;
+});
+
+// Handle custom actions
+add_action('template_redirect', function () {
+    $action = get_query_var('paytaca_action');
+    if (!$action) return;
+
+    error_log("[Paytaca] Handling paytaca_action via query_var: " . $action);
+
+    switch ($action) {
+        case 'verify':
+            require_once __DIR__ . '/includes/verify-payment.php';
+            exit;
+        case 'success':
+            require_once __DIR__ . '/includes/purchase-success.php';
+            exit;
+        case 'webhook':
+            require_once __DIR__ . '/includes/bch-webhook.php';
+            exit;
+    }
+});
+
+// Flush rewrite rules on activation
+register_activation_hook(__FILE__, function () {
+    flush_rewrite_rules();
+});
+
 // Load gateway
 add_action('plugins_loaded', 'init_wc_gateway_bch_paytaca', 11);
-
 function init_wc_gateway_bch_paytaca() {
     if (!class_exists('WC_Payment_Gateway')) {
         add_action('admin_notices', function () {
@@ -27,7 +68,7 @@ function init_wc_gateway_bch_paytaca() {
     });
 }
 
-// Add support for WooCommerce Blocks
+// Blocks support
 add_action('woocommerce_blocks_loaded', function () {
     if (!class_exists(\Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType::class)) {
         return;
@@ -35,15 +76,12 @@ add_action('woocommerce_blocks_loaded', function () {
 
     require_once __DIR__ . '/includes/class-bch-gateway-blocks.php';
 
-    add_action(
-        'woocommerce_blocks_payment_method_type_registration',
-        function ($payment_method_registry) {
-            $payment_method_registry->register(new WC_BCH_Paytaca_Blocks_Payment_Method());
-        }
-    );
+    add_action('woocommerce_blocks_payment_method_type_registration', function ($registry) {
+        $registry->register(new WC_BCH_Paytaca_Blocks_Payment_Method());
+    });
 });
 
-// Enqueue block assets
+// Scripts
 add_action('wp_enqueue_scripts', function () {
     wp_register_script(
         'bch-paytaca-blocks',
@@ -58,5 +96,4 @@ add_action('wp_enqueue_scripts', function () {
         'window.bchPaytacaIconUrl = "' . esc_js(plugins_url('assets/bch.png', __FILE__)) . '";',
         'before'
     );
-
 }, 20);

@@ -1,41 +1,40 @@
 <?php
-if (!defined('ABSPATH')) {
-    $dir = __DIR__;
-    while ($dir !== dirname($dir)) {
-        $wp_load = $dir . DIRECTORY_SEPARATOR . 'wp-load.php';
-        if (file_exists($wp_load)) {
-            require_once $wp_load;
-            break;
-        }
-        $dir = dirname($dir);
-    }
+if (!defined('ABSPATH')) exit;
 
-    if (!defined('ABSPATH')) {
-        // WordPress not loaded — abort
-        header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
-        error_log("[Paytaca Webhook] Error: wp-load.php not found.");
-        exit('Critical Error: Could not load WordPress.');
-    }
+$order_id = absint(get_query_var('order_id') ?? 0);
+$order = wc_get_order($order_id);
+
+$status = strtolower($_GET['status'] ?? '');
+
+if (in_array($status, ['completed', 'paid']) && WC()->cart && !WC()->cart->is_empty()) {
+    WC()->cart->empty_cart();
 }
 
-$order_id = absint($_GET['order_id'] ?? 0);
-$status   = $_GET['status'] ?? '';
+error_log('[Paytaca Debug] Raw $_GET: ' . json_encode($_GET));
+error_log('[Paytaca Debug] order_id from get_query_var: ' . get_query_var('order_id'));
 
-$order = wc_get_order($order_id);
+if (!$order) {
+    $status = 'invalid';
+} elseif (empty($status)) {
+    $status = $order->get_status(); // completed, cancelled, failed, pending, on-hold
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ Make layout responsive -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
         <?php
-            if ($status === 'expired') {
-                echo 'Invoice Expired';
-            } elseif ($status === 'paid') {
-                echo 'Payment Successful';
-            } else {
-                echo 'Invalid Access';
+            switch ($status) {
+                case 'completed': echo 'Payment Successful'; break;
+                case 'paid':      echo 'Payment Successful'; break;
+                case 'cancelled': echo 'Payment Cancelled'; break;
+                case 'expired':   echo 'Payment Expired'; break;
+                case 'failed':    echo 'Payment Failed'; break;
+                case 'pending':   
+                case 'on-hold':   echo 'Awaiting Payment'; break;
+                default:          echo 'Invalid Order';
             }
         ?>
     </title>
@@ -133,6 +132,13 @@ $order = wc_get_order($order_id);
             background-color: var(--button-hover);
         }
 
+        #countdown {
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
         @media (max-width: 480px) {
             body {
                 padding: 10px;
@@ -166,32 +172,59 @@ $order = wc_get_order($order_id);
 <body>
     <div class="success-box">
         <div class="icon-wrapper">
-            <img src="../assets/paytaca-icon.png" alt="Paytaca Logo" class="logo">
+            <img src="<?php echo esc_url(plugins_url('../assets/paytaca-icon.png', __FILE__)); ?>" alt="Paytaca Logo" class="logo">
         </div>
 
-        <?php if ($status === 'paid'): ?>
+        <?php if (in_array($status, ['completed', 'paid'])): ?>
             <h1>Payment Successful!</h1>
             <p class="message">
-                <?php
-                    if ($order_id > 0) {
-                        echo '<strong class="reference">Reference:</strong> Order #' . $order_id . '<br>';
-                    }
-                    echo 'Thank you for your purchase. Your order has been paid.';
-                ?>
+                <strong class="reference">Reference:</strong> Order #<?php echo esc_html($order_id); ?><br>
+                Thank you for your purchase. Your order has been paid.
             </p>
-        <?php elseif ($status === 'expired'): ?>
-            <h1 class="error-message">Invoice Expired</h1>
+
+        <?php elseif ($status === 'cancelled'): ?>
+            <h1 class="error-message">Payment Cancelled</h1>
             <p class="message">
-                <?php
-                    if ($order_id > 0) {
-                        echo '<strong class="reference">Reference:</strong> Order #' . $order_id . '<br>';
-                    }
-                    echo 'Unfortunately, your invoice has expired. Please try again or contact support.';
-                ?>
+                <strong class="reference">Reference:</strong> Order #<?php echo esc_html($order_id); ?><br>
+                The payment was cancelled. You can try placing your order again.
             </p>
+
+        <?php elseif ($status === 'expired'): ?>
+            <h1 class="error-message">Payment Expired</h1>
+            <p class="message">
+                <strong class="reference">Reference:</strong> Order #<?php echo esc_html($order_id); ?><br>
+                Your payment expired. Please try checking out again.
+            </p>
+
+        <?php elseif ($status === 'failed'): ?>
+            <h1 class="error-message">Payment Failed</h1>
+            <p class="message">
+                <strong class="reference">Reference:</strong> Order #<?php echo esc_html($order_id); ?><br>
+                Unfortunately, the payment failed. Please try again or contact support.
+            </p>
+
+        <?php elseif (in_array($status, ['pending', 'on-hold'])): ?>
+            <h1>Awaiting Payment</h1>
+            <p class="message">
+                <strong class="reference">Reference:</strong> Order #<?php echo esc_html($order_id); ?><br>
+                Your payment is still pending. This page will refresh once confirmed.
+            </p>
+            <p id="countdown">300s</p>
+            <script>
+                let countdown = 300;
+                const countdownEl = document.getElementById('countdown');
+                const interval = setInterval(() => {
+                    countdown--;
+                    countdownEl.textContent = countdown + 's';
+                    if (countdown <= 0) clearInterval(interval);
+                }, 1000);
+            </script>
+
         <?php else: ?>
             <h1 class="error-message">Invalid Access</h1>
-            <p class="message">Invalid or missing transaction. Please try again or contact support.</p>
+            <p class="message">
+                Invalid or missing order. Please check the link or contact support.
+            </p>
         <?php endif; ?>
 
         <a href="<?php echo esc_url(home_url()); ?>" class="home-btn">Return to Homepage</a>
