@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Bitcoin Cash Payments - Paytaca
  * Description: Accept Bitcoin Cash payments via Paytaca.
- * Version: 0.1.1
+ * Version: 0.1.2
  * Author: Paytaca
  */
 
@@ -15,6 +15,12 @@ add_action('init', function () {
         'index.php?paytaca_action=success&order_id=$matches[1]',
         'top'
     );
+    
+    // Check if our rewrite rule exists, if not flush rules
+    $rules = get_option('rewrite_rules');
+    if (!isset($rules['^paytaca/success/([0-9]+)/?$'])) {
+        flush_rewrite_rules();
+    }
 });
 
 // Register query vars
@@ -48,6 +54,53 @@ add_action('template_redirect', function () {
 // Flush rewrite rules on activation
 register_activation_hook(__FILE__, function () {
     flush_rewrite_rules();
+});
+
+// Clean up rewrite rules on deactivation
+register_deactivation_hook(__FILE__, function () {
+    flush_rewrite_rules();
+});
+
+// Add admin notice if rewrite rules need flushing
+add_action('admin_notices', function () {
+    if (isset($_GET['page']) && $_GET['page'] === 'wc-settings' && isset($_GET['tab']) && $_GET['tab'] === 'checkout') {
+        $rules = get_option('rewrite_rules');
+        if (!isset($rules['^paytaca/success/([0-9]+)/?$'])) {
+            echo '<div class="notice notice-warning"><p><strong>Paytaca Gateway:</strong> Rewrite rules need to be updated. <a href="' . admin_url('options-permalink.php') . '">Go to Permalinks</a> and click "Save Changes" to fix this.</p></div>';
+        }
+    }
+});
+
+// Add manual fix function
+add_action('wp_ajax_fix_paytaca_rewrite_rules', function () {
+    if (!current_user_can('manage_options')) {
+        wp_die('Unauthorized');
+    }
+    
+    flush_rewrite_rules();
+    wp_send_json_success('Rewrite rules flushed successfully');
+});
+
+// Add debug endpoint
+add_action('template_redirect', function () {
+    if (strpos($_SERVER['REQUEST_URI'], '/paytaca/debug') === 0) {
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        $rules = get_option('rewrite_rules');
+        $has_rule = isset($rules['^paytaca/success/([0-9]+)/?$']);
+        
+        echo '<h1>Paytaca Debug Info</h1>';
+        echo '<p><strong>Rewrite rule exists:</strong> ' . ($has_rule ? 'Yes' : 'No') . '</p>';
+        echo '<p><strong>Current rules:</strong></p>';
+        echo '<pre>' . print_r(array_keys($rules), true) . '</pre>';
+        
+        if (!$has_rule) {
+            echo '<p><a href="' . admin_url('options-permalink.php') . '">Go to Permalinks to fix</a></p>';
+        }
+        exit;
+    }
 });
 
 // Load gateway
