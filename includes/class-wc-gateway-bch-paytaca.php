@@ -94,7 +94,7 @@ class WC_Gateway_BCH_Paytaca extends WC_Payment_Gateway {
     }
 
     private function handle_store_creation($store_name, $wallet_hash) {
-        $webhook_url = add_query_arg(['paytaca_action' => 'webhook'], home_url('/'));
+        $webhook_url = trailingslashit(home_url('/paytaca/webhook'));
 
         $secret_key = wp_hash($store_name . $wallet_hash . time());
 

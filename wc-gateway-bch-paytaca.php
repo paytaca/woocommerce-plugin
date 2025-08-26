@@ -23,6 +23,21 @@ add_action('init', function () {
     }
 });
 
+add_action('init', function () {
+    add_rewrite_rule(
+        '^paytaca/webhook/?$',
+        'index.php?paytaca_action=webhook',
+        'top'
+    );
+    
+    // Check if webhook rewrite exists, if not flush rules
+    $rules = get_option('rewrite_rules');
+    if (!isset($rules['^paytaca/webhook/?$'])) {
+        flush_rewrite_rules();
+    }
+});
+
+
 // Register query vars
 add_filter('query_vars', function ($vars) {
     $vars[] = 'paytaca_action';
