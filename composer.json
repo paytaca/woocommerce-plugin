@@ -1,7 +1,7 @@
 {
     "name": "paytaca/woocommerce-plugin",
     "description": "Bitcoin Cash payment gateway for WooCommerce by Paytaca",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "type": "wordpress-plugin",
     "license": "MIT",
     "authors": [
