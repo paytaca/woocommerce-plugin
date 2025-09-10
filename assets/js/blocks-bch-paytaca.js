@@ -7,20 +7,29 @@
         return;
     }
 
-    const { createElement, Fragment } = element;
+    const { createElement } = element;
 
     console.log("Paytaca BCH block JS loaded");
 
     const bchIconUrl = window.bchPaytacaIconUrl || '';
-    const LabelWithIcon = createElement(Fragment, null,
+    const LabelWithIcon = createElement(
+        'span',
+        {
+            className: 'bch-paytaca-label',
+            style: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                lineHeight: '1.2',
+            }
+        },
         createElement('img', {
             src: bchIconUrl,
             alt: 'BCH',
             style: {
                 width: '20px',
                 height: '20px',
-                verticalAlign: 'middle',
-                marginRight: '8px',
+                display: 'inline-block',
             }
         }),
         'Bitcoin Cash (BCH)'
